@@ -203,6 +203,8 @@ class MQTTProtocol extends EventEmitter {
             debug('不支持的协议版本:', protocolLevel);
             // 发送 CONNACK，使用不支持的协议版本的返回码 (0x01)
             this.sendConnack(1, false);
+            // 发出协议错误事件
+            this.emit('protocolError', new Error(`不支持的协议版本: ${protocolLevel}`));
             // 关闭连接
             this.socket.end();
             return;
@@ -334,6 +336,9 @@ class MQTTProtocol extends EventEmitter {
      */
     parsePingReq(message) {
         debug('收到心跳请求');
+        
+        // 发出心跳请求事件
+        this.emit('pingreq');
         
         // 发送 PINGRESP
         this.sendPingResp();

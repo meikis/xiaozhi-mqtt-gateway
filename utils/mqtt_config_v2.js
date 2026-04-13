@@ -19,17 +19,6 @@ function generatePasswordSignature(content, secretKey) {
 }
 
 function validateMqttCredentials(clientId, username, password) {
-    // 验证密码签名
-    const signatureKey = process.env.MQTT_SIGNATURE_KEY;
-    if (signatureKey) {
-        const expectedSignature = generatePasswordSignature(clientId + '|' + username, signatureKey);
-        if (password !== expectedSignature) {
-            throw new Error('密码签名验证失败');
-        }
-    } else {
-        console.warn('缺少MQTT_SIGNATURE_KEY环境变量，跳过密码签名验证');
-    }
-
     // 验证clientId
     if (!clientId || typeof clientId !== 'string') {
         throw new Error('clientId必须是非空字符串');
@@ -45,6 +34,17 @@ function validateMqttCredentials(clientId, username, password) {
     // 验证username
     if (!username || typeof username !== 'string') {
         throw new Error('username必须是非空字符串');
+    }
+
+    // 验证密码签名
+    const signatureKey = process.env.MQTT_SIGNATURE_KEY;
+    if (signatureKey) {
+        const expectedSignature = generatePasswordSignature(clientId + '|' + username, signatureKey);
+        if (password !== expectedSignature) {
+            throw new Error('密码签名验证失败');
+        }
+    } else {
+        console.warn('缺少MQTT_SIGNATURE_KEY环境变量，跳过密码签名验证');
     }
     
     // 尝试解码username（应该是base64编码的JSON）
@@ -92,7 +92,8 @@ function generateMqttConfig(groupId, macAddress, uuid, userData) {
 
 module.exports = {
     generateMqttConfig,
-    validateMqttCredentials
+    validateMqttCredentials,
+    generatePasswordSignature
 }
 
 if (require.main === module) {
